@@ -15,7 +15,7 @@ local function _sleep(seconds)
 	os.execute(str)
 end
 
-local function _frameProc( frame )
+local function _tick( frame )
 	print(string.format('frame: %d', frame))
 	GSingalMap['ONE_FRAME']:signal()
 	if 10 > math.random(1,100) then
@@ -32,7 +32,7 @@ local function _run(  )
 	repeat
 		_sleep(0.2)
 		frame = frame+1
-		_frameProc(frame)
+		_tick(frame)
 	until false
 end
 

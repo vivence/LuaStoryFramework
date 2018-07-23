@@ -1,9 +1,9 @@
 
 ------ private function ----->
 
-local function _apiNewStory( context, steps  )
+local function _apiNewStory( context, stoy  )
 	local new_story_id = Ghost.apiBuildStoryID()
-	local new_context = Ghost.loadStory( context.user_id, new_story_id, steps )
+	local new_context = Ghost.loadStory( context.user_id, new_story_id, stoy )
 	return Ghost.awakeStory( new_context )
 end
 
