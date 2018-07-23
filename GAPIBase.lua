@@ -38,6 +38,11 @@ function Ghost.apiLoadStoryContextData( user_id, story_id )
 end
 
 -- rollback data is a linked list, record the context snapshot of each step 
+
+--<--natitive search--<--(-n is try reverse search the nth)
+-- [1, 2, 3, 4, ...] -- steps line
+-->--positive search-->--(n is try search the nth)
+
 -- return a table with data(key-value)
 function Ghost.apiRollbackStoryContextData( user_id, story_id, rollback_step, rollback_search )
 	gprint(string.format('apiRollbackStoryContextData: uid=%s, sid=%s', 
