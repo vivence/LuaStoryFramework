@@ -5,9 +5,17 @@ gassert = assert
 gprint = print
 
 require('GBase')
-require('GAPIBase')
-require('GSignal')
 require('GStoryManager')
+
+require('GAPIBase')
 require('GAPIPost')
-require('GAPIGet')
 require('GAPIWait')
+
+require('GAPIPostParallel')
+require('GAPIWaitCondition')
+require('GAPIWaitTest')
+
+require('GAPIInternal')
+require('GAPIPublic')
+
+require('GAPIWrapper')

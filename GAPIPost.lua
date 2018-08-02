@@ -1,31 +1,19 @@
 
------- private function ----->
+GAPIPost = Ghost.class("GAPIPost", GAPI)
 
-local function _apiNewStory( context, stoy  )
-	local new_story_id = Ghost.apiBuildStoryID()
-	local new_context = Ghost.loadStory( context.user_id, new_story_id, stoy )
-	return Ghost.awakeStory( new_context )
+function GAPIPost:ctor( func )
+	GAPIPost.super.ctor(self)
+	self.func = func
 end
 
-local function _apiPostPrint( context, str )
-	return gprint(string.format('[%s,%s] %s', 
-		tostring(context.user_id), 
-		tostring(context.story_id), str))
+------ override function ----->
+function GAPIPost:call( context, ... )
+	return self:_doCall(context, ...)
 end
+------ override function -----<
 
-local postEnum = {
-	NEW_STORY = _apiNewStory,
-	PRINT = _apiPostPrint,
-}
-
------- private function -----<
-
--------------- public interface -------------->
-
-function Ghost.apiPost(enum, context, ...)
-	local api = postEnum[enum]
-	gassert(nil ~= api, 'invalid post_enum')
-	return api(context, ...)
+------ virtual function ----->
+function GAPIPost:_doCall( context, ... )
+	return self.func(context, ...)
 end
-
--------------- public interface --------------<
+------ virtual function -----<

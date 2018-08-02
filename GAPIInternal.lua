@@ -1,17 +1,16 @@
 
 ------ private function ----->
 
-local getEnum = {
-}
 
 ------ private function -----<
 
 -------------- public interface -------------->
 
-function Ghost.apiGet(enum, context, ...)
-	local api = getEnum[enum]
-	gassert(nil ~= api, 'invalid get_enum')
-	return api(context, ...)
+function Ghost._apiStoryContextDirtyProc( context )
+	context:debugLog("context dirty")
+	-- TODO 
+	-- put context into dirty table? 
+	-- save it immediately? ...? 
 end
 
 -------------- public interface --------------<
