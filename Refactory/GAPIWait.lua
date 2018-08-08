@@ -35,16 +35,15 @@ end
 
 GAPIWait = Ghost.class("GAPIWait", GAPI)
 
-function GAPIWait:ctor( name )
+function GAPIWait:ctor()
 	GAPIWait.super.ctor(self)
-	self.name = name or 'no_name'
 	self.story_infos = {}
 end
 
 ------ override function ----->
-function GAPIWait:call( context, ... )
-	self:_register(context, ...)
-	return Ghost.sleepStory(context)
+function GAPIWait:call( story, ... )
+	self:_register(story, ...)
+	return story:sleep(...)
 end
 ------ override function -----<
 
@@ -52,18 +51,14 @@ function GAPIWait:signal( ... )
 	local story_infos = self.story_infos
 	self.story_infos = _poolPop()
 
-	local loged = false
-
 	for i=#story_infos, 1, -1 do
 		local info = story_infos[i]
 		story_infos[i] = nil
-		if not info.context:isClosed() then
+
+		local story = info.story
+		if story:isModeNormal() then
 			if self:_checkSignal(info, ...) then
-				if not loged then
-					loged = true
-					self:_log(nil, string.format('[%s]signal', self.name), ...)
-				end
-				Ghost.awakeStory(info.context, info.co_name, ...)
+				story:awakeThread(info.thread_name, ...)
 				_tableClear(info)
 				_poolPush(info)
 			else
@@ -76,28 +71,15 @@ function GAPIWait:signal( ... )
 	_poolPush(story_infos)
 end
 
-function GAPIWait:_register( context, ... )
-	self:_log(context, string.format('[%s]wait', self.name), ...)
-
+function GAPIWait:_register( story, ... )
 	local info = _poolPop()
-	info.context = context
-	info.co_name = context:getCoName()
+	info.story = story
+	info.thread_name = story:getCurrentThreadName()
 	self:_setArgs(info, ...)
 	_arrayPush(self.story_infos, info)
 end
 
 ------ virtual function ----->
-
-function GAPIWait:_log( context, tag, ... )
-	if nil ~= context then
-		-- register
-		context:debugLog(tag)
-	else
-		-- signal
-		gprint(tag)
-	end
-end
-
 function GAPIWait:_setArgs( info, ... )
 	if nil ~= ... then
 		info.args = {...}

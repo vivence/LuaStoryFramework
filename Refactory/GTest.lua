@@ -14,23 +14,28 @@ end
 
 local function _tick( frame )
 	-- print(string.format('frame: %d', frame))
-	Ghost.getAPI('ONE_FRAME'):signal()
-	Ghost.getAPI('CONDITION'):signal()
+
+	Ghost.getAPI('waitOneFrame'):signal()
+	-- Ghost.getAPI('waitCondition'):signal()
+
 	if 10 > math.random(1,100) then
 		local n = math.floor(math.random(1,3))
-		Ghost.getAPI('TEST'):signal(n)
+		Ghost.getAPI('waitKill'):signal(n)
 	end
 end
 
-local sample_story = require('GSampleStory')
+local story_info = require('GSampleStory')
 
-local function _run(  )
-	Ghost.registerStory(sample_story)
+local function _run()
+	-- 1.
+	Ghost.registerAPIAll()
+	-- 2.
+	local story_data = GData.new()
+	local story = GStory.new(story_info, story_data)
+	story:setModeNormal()
+	story:awake()
 
-	-- load user task story
-	local story_context = Ghost.loadStory(sample_story.NAME, sample_story.VERSION)
-	Ghost.awakeStory( story_context )
-
+	-- 3.
 	local frame = 0
 	repeat
 		_sleep(0.2)
@@ -40,5 +45,3 @@ local function _run(  )
 end
 
 _run()
-
-
