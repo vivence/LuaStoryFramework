@@ -102,12 +102,15 @@ function GStory:getCurrentThreadName()
 	return self.thread_name_stack:peek()
 end
 
-function GStory:getDataProxy()
-	return self.data:getProxy()
-end
-
-function GStory:recordAPICall()
+function GStory:recordAPICall(name, params, returns)
 	local data = self.data
+	local data_proxy = data:getProxy()
+
+	data._thread_name = self.thread_name_stack:peek()
+	data._api_name = name
+	data._api_params = params
+	data._api_returns = returns
+
 	data:historyEnd()
 	data:historyBegin()
 end

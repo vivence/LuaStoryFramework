@@ -2,22 +2,11 @@
 local api_map = {}
 
 -------------- private interface -------------->
-local function _recordAPICall(story, name, ...)
-	local data = story:getDataProxy()
-	data._thread_name = story:getCurrentThreadName()
-	data._api_name = name
+local function _packParams( ... )
 	if nil ~= ... then
-		data._api_params = {...}
+		return {...}
 	else
-		data._api_params = nil
-	end
-end
-local function _recordAPIReturn(story, ...)
-	local data = story:getDataProxy()
-	if nil ~= ... then
-		data._api_return = {...}
-	else
-		data._api_return = nil
+		return nil
 	end
 end
 -------------- private interface --------------<
@@ -39,12 +28,10 @@ function Ghost.callAPI(name, ...)
 
 	local story = Ghost.getCurrentStory()
 	if story:isModeNormal() then
-		-- 1.
-		_recordAPICall(story, name, ...)
-		-- 2.
-		_recordAPIReturn(story, api:call(story, ...))
-		-- 3.
-		story:recordAPICall()
+		local params = _packParams(...)
+		local returns = _packParams(api:call(story, ...))
+		
+		story:recordAPICall(name, params, returns)
 		-- story.data:historyPrint()
 	elseif story:isModeRestore() then
 		-- TODO
