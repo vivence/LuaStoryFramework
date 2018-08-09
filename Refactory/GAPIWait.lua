@@ -42,8 +42,8 @@ end
 
 ------ override function ----->
 function GAPIWait:call( story, ... )
-	self:_register(story, ...)
-	return story:sleep(...)
+	local info = self:_register(story, ...)
+	return story:sleepThread(info.thread_name, ...)
 end
 ------ override function -----<
 
@@ -77,6 +77,7 @@ function GAPIWait:_register( story, ... )
 	info.thread_name = story:getCurrentThreadName()
 	self:_setArgs(info, ...)
 	_arrayPush(self.story_infos, info)
+	return info
 end
 
 ------ virtual function ----->

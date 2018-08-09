@@ -9,7 +9,9 @@ function story.proc(data)
 
 	apiWaitOneFrame()
 
+	data.kill_1 = 0
 	apiWaitKill(1)
+	data.kill_1 = data.kill_1+1
 
 	apiPrint('end')
 end

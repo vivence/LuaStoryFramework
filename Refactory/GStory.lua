@@ -58,12 +58,21 @@ function GStory:ctor(info, data)
 	self:_loadThread(MAIN_THREAD_NAME)
 end
 
+function GStory:debugLog(str)
+	local info = self.info
+	gprint(string.format('[%s, %s]<%s, mode-%s>: %s', 
+		info.NAME,
+		info.VERSION,
+		self.thread_name_stack:peek(),
+		self.mode,
+		str))
+end
+
 function GStory:isModeNormal()
 	return MODE_NORMAL == self.mode
 end
 function GStory:setModeNormal()
 	self.mode = MODE_NORMAL
-	-- self:debugLog('set mode normal')
 end
 
 function GStory:isModeRestore()
@@ -71,7 +80,6 @@ function GStory:isModeRestore()
 end
 function GStory:setModeRestore()
 	self.mode = MODE_RESTORE
-	-- self:debugLog('set mode restore')
 end
 
 function GStory:isModeClose()
@@ -79,7 +87,6 @@ function GStory:isModeClose()
 end
 function GStory:setModeClose()
 	self.mode = MODE_CLOSE
-	-- self:debugLog('set mode close')
 end
 
 function GStory:awake(...)
@@ -95,46 +102,33 @@ function GStory:awakeThread(name, ...)
 end
 
 function GStory:sleepThread(name, ...)
-	return self:_awakeThread(name, ...)
+	return self:_sleepThread(name, ...)
 end
 
 function GStory:getCurrentThreadName()
 	return self.thread_name_stack:peek()
 end
 
-function GStory:recordAPICall(name, params, returns)
-	local data = self.data
-	local data_proxy = data:getProxy()
-
-	data._thread_name = self.thread_name_stack:peek()
-	data._api_name = name
-	data._api_params = params
-	data._api_returns = returns
-
-	data:historyEnd()
-	data:historyBegin()
+function GStory:recordAPICall(name, ...)
+	self.data:record(GData.Action.API_CALL, name, ...) 
 end
 
-function GStory:debugLog(str)
-	local info = self.info
-	gprint(string.format('[%s, %s]<%s, mode-%s>: %s', 
-		info.NAME,
-		info.VERSION,
-		self.thread_name_stack:peek(),
-		self.mode,
-		str))
+function GStory:recordAPIReturn(name, ...)
+	if nil ~= ... then
+		self.data:getProxy()._lastReturn = {...}
+	else
+		self.data:getProxy()._lastReturn = nil
+	end
+	self.data:record(GData.Action.API_RETURN, name, ...)
 end
 
 -------------- private interface -------------->
 function GStory:_run()
 	self.running = true
-	self.data:historyBegin()
 	local data_proxy = self.data:getProxy()
 	self.info.proc(data_proxy)
-	self.data:historyEnd()
 	self.running = false
 end
-
 
 function GStory:_loadThread(name)
 	local t = self.thread_map[name]
@@ -154,6 +148,7 @@ function GStory:_awakeThread(name, ...)
 	_storyPush(self)
 
 	self:debugLog('awake')
+	self.data:record(GData.Action.THREAD_AWAKE, name, ...) 
 	if self.running then
 		return coroutine.resume(t, ...)
 	else
@@ -163,6 +158,7 @@ end
 
 function GStory:_sleepThread(name, ...)
 	self:debugLog('sleep')
+	self.data:record(GData.Action.THREAD_SLEEP, name, ...)
 
 	local test_story = _storyPeek()
 	gassert(test_story == self, 'sleep story is not current story')

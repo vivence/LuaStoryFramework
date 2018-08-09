@@ -1,14 +1,6 @@
 
-local api_map = {}
-
 -------------- private interface -------------->
-local function _packParams( ... )
-	if nil ~= ... then
-		return {...}
-	else
-		return nil
-	end
-end
+local api_map = {}
 -------------- private interface --------------<
 
 ------ static function ----->
@@ -28,11 +20,8 @@ function Ghost.callAPI(name, ...)
 
 	local story = Ghost.getCurrentStory()
 	if story:isModeNormal() then
-		local params = _packParams(...)
-		local returns = _packParams(api:call(story, ...))
-		
-		story:recordAPICall(name, params, returns)
-		-- story.data:historyPrint()
+		story:recordAPICall(name, ...)
+		story:recordAPIReturn(api:call(story, ...))
 	elseif story:isModeRestore() then
 		-- TODO
 	elseif story:isModeClose() then

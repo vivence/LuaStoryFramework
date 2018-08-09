@@ -41,7 +41,18 @@ local function _run()
 		_sleep(0.2)
 		frame = frame+1
 		_tick(frame)
-	until false
+	until not story.running
+		
+	story_data:historyPrint()
+
+	gprint('----data---->')
+	local data_proxy = story_data:getProxy()
+	for k,v in pairs(data_proxy) do
+		gprint(string.format('%s = %s',tostring(k),tostring(v)))
+	end
+	gprint('----data----<')
 end
 
 _run()
+
+
