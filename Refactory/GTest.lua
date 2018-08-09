@@ -16,7 +16,7 @@ local function _tick( frame )
 	-- print(string.format('frame: %d', frame))
 
 	Ghost.getAPI('waitOneFrame'):signal()
-	-- Ghost.getAPI('waitCondition'):signal()
+	Ghost.getAPI('waitCondition'):signal()
 
 	if 10 > math.random(1,100) then
 		local n = math.floor(math.random(1,3))
@@ -42,7 +42,6 @@ local function _run()
 		frame = frame+1
 		_tick(frame)
 	until not story.running
-		
 	story_data:historyPrint()
 
 	gprint('----data---->')
@@ -54,5 +53,4 @@ local function _run()
 end
 
 _run()
-
 

@@ -16,6 +16,9 @@ end
 local function _storyProc(story, ...)
 	story:_run(...)
 end
+local function _storySubProc(story, proc, ...)
+	story:_runSub(proc, ...)
+end
 -------------- private interface --------------<
 
 ------ static function ----->
@@ -52,10 +55,11 @@ function GStory:ctor(info, data)
 	self.data = data
 
 	self.thread_map = {}
+	self.closing_thread_map = {}
 	self.thread_name_stack = GStack.new()
 
 	self.running = false
-	self:_loadThread(MAIN_THREAD_NAME)
+	self:_loadThread(MAIN_THREAD_NAME, _storyProc)
 end
 
 function GStory:debugLog(str)
@@ -115,11 +119,38 @@ end
 
 function GStory:recordAPIReturn(name, ...)
 	if nil ~= ... then
-		self.data:getProxy()._lastReturn = {...}
+		self.data:getProxy()._last_return = {...}
 	else
-		self.data:getProxy()._lastReturn = nil
+		self.data:getProxy()._last_return = nil
 	end
 	self.data:record(GData.Action.API_RETURN, name, ...)
+end
+
+function GStory:createSubThread(name, proc)
+	gassert(nil ~= name and '' ~= name, 'create new thread no name')
+	gassert(self.running, 'story is dead')
+	gassert(nil == self.thread_map[name], 'thread is already running')
+
+	self:_loadThread(name, _storySubProc)
+	return self:awakeThread(name, self, proc)
+end
+
+function GStory:destroySubThread(name)
+	gassert(nil ~= name and '' ~= name, 'create new thread no name')
+	gassert(self.running, 'story is dead')
+	self.closing_thread_map[name] = 1
+
+	if nil ~= self.thread_map[name] and not self:_isCurrentThreadName(name) then
+		self:_awakeThread(name)
+		return true
+	end
+	return false
+end
+
+function GStory:isCurrentThreadClosing()
+	gassert(self.running, 'story is dead')
+	local name = self.thread_name_stack:peek()
+	return nil == name or nil ~= self.closing_thread_map[name]
 end
 
 -------------- private interface -------------->
@@ -127,25 +158,71 @@ function GStory:_run()
 	self.running = true
 	local data_proxy = self.data:getProxy()
 	self.info.proc(data_proxy)
+
+	local name = self.thread_name_stack:peek()
+	self:_unloadThread(name)
+
+	for k,_ in pairs(self.thread_map) do
+		self:destroySubThread(k)
+	end
+
 	self.running = false
+
+	self.data:record(GData.Action.THREAD_END, name)
+	self:_popThread(name)
 end
 
-function GStory:_loadThread(name)
+function GStory:_runSub(proc)
+	local data_proxy = self.data:getProxy()
+	proc(data_proxy)
+	local name = self.thread_name_stack:peek()
+	
+	self:_unloadThread(name)
+
+	self.data:record(GData.Action.THREAD_END, name)
+	self:_popThread(name)
+end
+
+function GStory:_isCurrentThreadName(name)
+	return self.thread_name_stack:peek() == name
+end
+
+function GStory:_loadThread(name, proc)
 	local t = self.thread_map[name]
 	if nil ==  t then
-		t = coroutine.create(_storyProc)
+		t = coroutine.create(proc)
 		self.thread_map[name] = t
 	end
 	return t
+end
+
+function GStory:_unloadThread(name)
+	self.thread_map[name] = nil
+	self.closing_thread_map[name] = nil
+end
+
+function GStory:_pushThread(name)
+	self.thread_name_stack:push(name)
+	_storyPush(self)
+end
+
+function GStory:_popThread(name)
+	local test_story = _storyPeek()
+	gassert(test_story == self, 'sleep story is not current story')
+
+	_storyPop()
+
+	gassert(self:_isCurrentThreadName(name), 'sleep thread is not current thread')
+	
+	self.thread_name_stack:pop()
 end
 
 function GStory:_awakeThread(name, ...)
 	local t = self.thread_map[name]
 	gassert(nil ~= t, 'thread is not loaded')
 
-	self.thread_name_stack:push(name)
-
-	_storyPush(self)
+	gassert(not self:_isCurrentThreadName(name), 'do not awake self')
+	self:_pushThread(name)
 
 	self:debugLog('awake')
 	self.data:record(GData.Action.THREAD_AWAKE, name, ...) 
@@ -160,15 +237,7 @@ function GStory:_sleepThread(name, ...)
 	self:debugLog('sleep')
 	self.data:record(GData.Action.THREAD_SLEEP, name, ...)
 
-	local test_story = _storyPeek()
-	gassert(test_story == self, 'sleep story is not current story')
-
-	_storyPop()
-
-	local test_name = self.thread_name_stack:peek()
-	gassert(test_name == name, 'sleep thread is not current thread')
-	
-	self.thread_name_stack:pop()
+	self:_popThread(name)
 	return coroutine.yield(...)
 end
 -------------- private interface --------------<

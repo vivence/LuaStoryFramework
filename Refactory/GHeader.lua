@@ -13,5 +13,6 @@ require('GAPI')
 require('GAPIPost')
 require('GAPIWait')
 require('GAPIWaitValue')
+require('GAPIWaitCondition')
 
 require('GAPIWrapper')

@@ -19,6 +19,44 @@ local function _createProxy(data, _data)
 
 	return proxy
 end
+
+local function _arrayToString(array, start_index, end_index)
+	start_index = start_index or 1
+	end_index = end_index or #array
+	local result = {}
+	local pos = 1
+	for i=start_index, end_index do
+		local v = array[i]
+		local t = type(v)
+		if 'nil' == t then
+			result[pos] = '_nil'
+		elseif 'boolean' == t then
+			if v then
+				result[pos] = 'true'
+			else
+				result[pos] = 'false'
+			end
+		elseif 'number' == t then
+			result[pos] = v
+		elseif 'string' == t then
+			result[pos] = v
+		elseif 'userdata' == t then
+			result[pos] = '_userdata'
+		elseif 'thread' == t then
+			result[pos] = '_thread'
+		elseif 'table' == t then
+			result[pos] = string.format('{%s}', _arrayToString(v))
+		elseif 'function' == t then
+			result[pos] = '_function'
+		end
+		pos = pos+1
+	end
+	return table.concat(result, ",") or ''
+end
+
+local function _historyNodeToString(node)
+	return string.format('%s(%s)', node[1], _arrayToString(node, 2))
+end
 -------------- private interface --------------<
 
 GData = Ghost.class("GData")
@@ -27,6 +65,7 @@ GData.Action = {
 	SET_DATA = 'setData',
 	THREAD_AWAKE = 'threadAwake',
 	THREAD_SLEEP = 'threadSleep',
+	THREAD_END = 'threadEnd',
 	API_CALL = 'apiCall',
 	API_RETURN = 'apiReturn',
 }
@@ -56,16 +95,7 @@ function GData:historyPrint()
 	local data = {}
 	for i=1, #history do
 		local node = history[i]
-		if 1 < #node then
-			gprint(string.format('[%d] %s(%s)', 
-				i, 
-				node[1], 
-				table.concat(node, ",", 2)))
-		else
-			gprint(string.format('[%d] %s()', 
-				i, 
-				node[1]))
-		end
+		gprint(string.format('[%d] %s', i, _historyNodeToString(node)))
 	end
 	gprint('----history----<')
 end
@@ -75,16 +105,19 @@ function GData:_set(k, v)
 	local story = self.story
 
 	if story:isModeNormal() then
-		local t = type(v)
-		if 'nil' == t 
-			or 'boolean' == t 
-			or 'number' == t 
-			or 'string' == t then
-			v = v or '_nil'
-			rawset(self._data, k, v)
-			self:record(GData.Action.SET_DATA, k, v)
-		else-- 'userdata','thread','table','function'
-			gassert(false, 'set data invalid type')
+		if not story:isCurrentThreadClosing() then
+			local t = type(v)
+			if 'nil' == t 
+				or 'boolean' == t 
+				or 'number' == t 
+				or 'string' == t 
+				or 'table' == t then
+				v = v or '_nil'
+				rawset(self._data, k, v)
+				self:record(GData.Action.SET_DATA, k, v)
+			else-- 'userdata','thread','function'
+				gassert(false, 'set data invalid type')
+			end
 		end
 	elseif story:isModeRestore() then
 		-- TODO

@@ -20,8 +20,10 @@ function Ghost.callAPI(name, ...)
 
 	local story = Ghost.getCurrentStory()
 	if story:isModeNormal() then
-		story:recordAPICall(name, ...)
-		story:recordAPIReturn(api:call(story, ...))
+		if not story:isCurrentThreadClosing() then
+			story:recordAPICall(name, ...)
+			story:recordAPIReturn(api:call(story, ...))
+		end
 	elseif story:isModeRestore() then
 		-- TODO
 	elseif story:isModeClose() then
