@@ -29,7 +29,9 @@ function story.proc(data)
 	end)
 	
 	apiWaitCondition(function()
-		return 0 < data.kill_1 or 0 < data.kill_2 or 0 < data.kill_3
+		return 0 < data.kill_1 
+			or 0 < data.kill_2 
+			or 0 < data.kill_3
 	end)
 
 	apiParallelBreak('sub_proc_1')

@@ -126,6 +126,10 @@ function GStory:recordAPIReturn(name, ...)
 	self.data:record(GData.Action.API_RETURN, name, ...)
 end
 
+function GStory:recordSignal(name, ...)
+	self.data:record(GData.Action.SIGNAL, name, ...)
+end
+
 function GStory:createSubThread(name, proc)
 	gassert(nil ~= name and '' ~= name, 'create new thread no name')
 	gassert(self.running, 'story is dead')

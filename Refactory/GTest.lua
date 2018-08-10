@@ -15,12 +15,12 @@ end
 local function _tick( frame )
 	-- print(string.format('frame: %d', frame))
 
-	Ghost.getAPI('waitOneFrame'):signal()
-	Ghost.getAPI('waitCondition'):signal()
+	Ghost.signal('waitOneFrame')
+	Ghost.signal('waitCondition')
 
 	if 10 > math.random(1,100) then
 		local n = math.floor(math.random(1,3))
-		Ghost.getAPI('waitKill'):signal(n)
+		Ghost.signal('waitKill', n)
 	end
 end
 

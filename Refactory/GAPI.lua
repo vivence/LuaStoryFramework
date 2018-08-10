@@ -10,8 +10,12 @@ function Ghost.registerAPI(name, api)
 	api_map[name] = api
 end
 
-function Ghost.getAPI(name)
-	return api_map[name]
+function Ghost.signal(name, ...)
+	local api = api_map[name]
+	gassert(nil ~= api, 'no api')
+	gassert(nil ~= api.signal, 'api no signal function')
+	gassert('function' == type(api.signal), 'api signal is not function')
+	api:signal(name, ...)
 end
 
 function Ghost.callAPI(name, ...)

@@ -68,6 +68,7 @@ GData.Action = {
 	THREAD_END = 'threadEnd',
 	API_CALL = 'apiCall',
 	API_RETURN = 'apiReturn',
+	SIGNAL = 'signal',
 }
 
 function GData:ctor()

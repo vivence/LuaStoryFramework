@@ -47,7 +47,7 @@ function GAPIWait:call( story, ... )
 end
 ------ override function -----<
 
-function GAPIWait:signal( ... )
+function GAPIWait:signal( name, ... )
 	local story_infos = self.story_infos
 	self.story_infos = _poolPop()
 
@@ -58,6 +58,7 @@ function GAPIWait:signal( ... )
 		local story = info.story
 		if story:isModeNormal() then
 			if self:_checkSignal(info, ...) then
+				story:recordSignal(name, ...)
 				story:awakeThread(info.thread_name, ...)
 				_tableClear(info)
 				_poolPush(info)
