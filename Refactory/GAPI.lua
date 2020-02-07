@@ -10,6 +10,10 @@ function Ghost.registerAPI(name, api)
 	api_map[name] = api
 end
 
+function Ghost.getAPI(name)
+	return api_map[name]
+end
+
 function Ghost.signal(name, ...)
 	local api = api_map[name]
 	gassert(nil ~= api, 'no api')
@@ -26,7 +30,7 @@ function Ghost.callAPI(name, ...)
 	if story:isModeNormal() then
 		if not story:isCurrentThreadClosing() then
 			story:recordAPICall(name, ...)
-			story:recordAPIReturn(api:call(story, ...))
+			story:recordAPIReturn(name, api:call(story, ...))
 		end
 	elseif story:isModeRestore() then
 		-- TODO

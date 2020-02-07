@@ -65,6 +65,7 @@ GData.Action = {
 	SET_DATA = 'setData',
 	THREAD_AWAKE = 'threadAwake',
 	THREAD_SLEEP = 'threadSleep',
+	THREAD_CLOSE = 'threadClose',
 	THREAD_END = 'threadEnd',
 	API_CALL = 'apiCall',
 	API_RETURN = 'apiReturn',
@@ -92,13 +93,13 @@ end
 
 function GData:historyPrint()
 	local history = self._history
-	gprint('----history---->')
+	gdebug('----history---->')
 	local data = {}
 	for i=1, #history do
 		local node = history[i]
-		gprint(string.format('[%d] %s', i, _historyNodeToString(node)))
+		gdebug(string.format('[%d] %s', i, _historyNodeToString(node)))
 	end
-	gprint('----history----<')
+	gdebug('----history----<')
 end
 
 -------------- private interface -------------->

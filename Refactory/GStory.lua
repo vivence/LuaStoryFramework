@@ -64,7 +64,7 @@ end
 
 function GStory:debugLog(str)
 	local info = self.info
-	gprint(string.format('[%s, %s]<%s, mode-%s>: %s', 
+	gdebug(string.format('[%s, %s]<%s, mode-%s>: %s', 
 		info.NAME,
 		info.VERSION,
 		self.thread_name_stack:peek(),
@@ -119,7 +119,12 @@ end
 
 function GStory:recordAPIReturn(name, ...)
 	if nil ~= ... then
-		self.data:getProxy()._last_return = {...}
+		local ret = {...}
+		if 1 < #ret then
+			self.data:getProxy()._last_return = ret
+		else
+			self.data:getProxy()._last_return = ret[1]
+		end
 	else
 		self.data:getProxy()._last_return = nil
 	end
@@ -143,6 +148,7 @@ function GStory:destroySubThread(name)
 	gassert(nil ~= name and '' ~= name, 'create new thread no name')
 	gassert(self.running, 'story is dead')
 	self.closing_thread_map[name] = 1
+	self.data:record(GData.Action.THREAD_CLOSE, name)
 
 	if nil ~= self.thread_map[name] and not self:_isCurrentThreadName(name) then
 		self:_awakeThread(name)

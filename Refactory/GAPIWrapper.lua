@@ -4,7 +4,8 @@
 local _registerAPI = Ghost.registerAPI
 
 local function _apiPrint( story, str )
-	story:debugLog(str)
+	-- story:debugLog(str)
+	gprint(str)
 end
 
 local function _apiParallel( story, name, proc )
@@ -22,6 +23,7 @@ function Ghost.registerAPIAll()
 	_registerAPI('waitOneFrame', GAPIWait.new())
 	_registerAPI('waitKill', GAPIWaitValue.new())
 	_registerAPI('waitCondition', GAPIWaitCondition.new())
+	_registerAPI('waitInput', GAPIWaitInput.new())
 	_registerAPI('parallel', GAPIPost.new(_apiParallel))
 	_registerAPI('parallelBreak', GAPIPost.new(_apiBreakParallel))
 	-- TODO
@@ -36,12 +38,23 @@ function apiWaitOneFrame()
 	return Ghost.callAPI('waitOneFrame')
 end
 
+function apiWaitSecond(s)
+	local frames = s*5 -- 0.2s per frame
+	for i=1, frames do
+		apiWaitOneFrame()
+	end
+end
+
 function apiWaitKill(id)
 	return Ghost.callAPI('waitKill', id)
 end
 
 function apiWaitCondition(condition)
 	return Ghost.callAPI('waitCondition', condition)
+end
+
+function apiWaitInput(options)
+	return Ghost.callAPI('waitInput', options)
 end
 
 function apiParallel(name, proc)
@@ -51,7 +64,6 @@ end
 function apiParallelBreak(name)
 	return Ghost.callAPI('parallelBreak', name)
 end
-
 
 
 
